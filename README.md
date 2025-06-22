@@ -1,12 +1,65 @@
-# React + Vite
+為何更新 . 目前在測試時，出現 msw 2 相容性問題。
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+src/mocks/browser.js
+```
+import { setupWorker } from 'msw/browser'
+import { handlers } from './handlers'
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+export const worker = setupWorker(...handlers)
+```
 
-## Expanding the ESLint configuration
+src/mocks/handlers.js
+```
+import { http, HttpResponse } from 'msw'
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+const fetchUserUrl = "/api/user";
+
+export const handlers = [
+  http.get(fetchUserUrl, () => {
+    return HttpResponse.json(
+      {
+        id: 1,
+        name: "John Doe",
+        username: "johndoe",
+        email: "john.doe@example.com",
+      },
+      { status: 200 }
+    );
+  }),
+];
+
+```
+
+src/main.jsx
+```
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+
+async function enableMocking() {
+  if (process.env.NODE_ENV !== 'development') {
+    return
+  }
+
+  const { worker } = await import('./mocks/browser')
+  await worker.start()
+}
+
+enableMocking().then(() => {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  )
+})
+```
+
+run
+```
+npm run dev
+
+// then display
+Vite + React + MSW Template (JavaScript)
+User: John Doe
+```

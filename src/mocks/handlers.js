@@ -1,7 +1,3 @@
-// Instead of this (MSW v1):
-// import { rest } from 'msw'
-
-// Use this (MSW v2):
 import { http, HttpResponse } from 'msw'
 
 const fetchUserUrl = "/api/user";
